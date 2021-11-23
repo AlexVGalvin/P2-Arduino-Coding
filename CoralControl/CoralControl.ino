@@ -219,6 +219,10 @@ void theaterChase(uint32_t color, int wait) {
   }
 }
 
+unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
+unsigned long PreviousTime = CurrentTime;
+bool badTemp = false;
+
 // Rainbow cycle along whole strip. Pass delay time (in ms) between frames.
 void rainbow(int wait) {
   // Hue of first pixel runs 5 complete loops through the color wheel.
@@ -236,15 +240,43 @@ void rainbow(int wait) {
       // Here we're using just the single-argument hue variant. The result
       // is passed through strip.gamma32() to provide 'truer' colors
       // before assigning to each pixel:
-      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
+      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue))); 
+      if (badTemp == true)
+      {
+        uint8_t LEDr =(strip.getPixelColor(i) >> 16);
+        uint8_t LEDg =(strip.getPixelColor(i) >> 8);
+        uint8_t LEDb =(strip.getPixelColor(i));
+        float color = int(exp(0.73*(temperature-highTemp))-1);
+        uint8_t red = LEDr + color;
+        //red = clamp(red, 0, 255);
+        Serial.println(red);
+        strip.setPixelColor(i, strip.Color(red, LEDg, LEDb));
+      }
+      /*Serial.println("Red, Green, Blue"); //If ya wanna see the colors of the Neo Pixels
+      Serial.print(LEDr);
+      Serial.print(", ");
+      Serial.print(LEDg);
+      Serial.print(", ");
+      Serial.println(LEDb);
+      delay(300);*/
     }
 
-    float temp = getTemp();
-    Serial.print(temp);
-    Serial.println(" deg C");
-    if (temp >= highTemp)
+    CurrentTime = millis();
+    if (CurrentTime >= (PreviousTime + 2000))
     {
-      break;
+      temperature = getTemp();
+      Serial.print(temperature);
+      Serial.println(" deg C");
+      if (temperature >= highTemp)
+      {
+        badTemp = true;
+      }
+      else
+      {
+        badTemp = false;
+      }
+      CurrentTime = millis();
+      PreviousTime = CurrentTime;
     }
     
     strip.show(); // Update strip with new contents
