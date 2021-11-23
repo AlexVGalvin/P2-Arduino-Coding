@@ -101,7 +101,7 @@ void loop() {
   {
     digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    rainbow(5);             // Flowing rainbow cycle along the whole strip
+    rainbow(10);             // Flowing rainbow cycle along the whole strip
   }
   // Do a theater marquee effect in various colors...
   
@@ -211,6 +211,9 @@ void theaterChase(uint32_t color, int wait) {
   }
 }
 
+unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
+unsigned long PreviousTime = CurrentTime;
+
 // Rainbow cycle along whole strip. Pass delay time (in ms) between frames.
 void rainbow(int wait) {
   // Hue of first pixel runs 5 complete loops through the color wheel.
@@ -231,12 +234,18 @@ void rainbow(int wait) {
       strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
     }
 
-    float temp = getTemp();
-    Serial.print(temp);
-    Serial.println(" deg C");
-    if (temp >= highTemp)
+    CurrentTime = millis();
+    if (CurrentTime >= (PreviousTime + 2000))
     {
-      break;
+      float temp = getTemp();
+      Serial.print(temp);
+      Serial.println(" deg C");
+      if (temp >= highTemp)
+      {
+        break;
+      }
+      CurrentTime = millis();
+      PreviousTime = CurrentTime;
     }
     
     strip.show(); // Update strip with new contents
