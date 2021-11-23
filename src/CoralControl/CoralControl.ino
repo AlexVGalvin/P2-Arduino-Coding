@@ -45,7 +45,8 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 // setup() function -- runs once at startup --------------------------------
 
-int highTemp = 26;  //Temperature where lights will depict coral that is starting to die
+int highTemp = 27;  //Temperature where lights will depict coral that is starting to die
+#define tempRange 7.5
 
 void setup() {
   pinMode(UV_PIN, OUTPUT);
@@ -100,10 +101,9 @@ void loop() {
     float green = (temperature-highTemp)*degreeGradient;
     blue = clamp(blue, 255, 0);
     green = clamp(green, 255, 0);*/
-    float color = exp(0.73*(temperature-highTemp))-1;
     //Serial.print("Color: ");
     //Serial.println(color);
-    setColor(strip.Color(255, color, color), 100);
+    setColor(strip.Color(255, 255, 255), 100);
   }
   else
   {
@@ -254,6 +254,10 @@ void rainbow(int wait) {
         Serial.println(color);
         Serial.println(temperature);
         strip.setPixelColor(i, strip.Color(red, green, blue));
+        if (temperature > highTemp+tempRange)
+        {
+          break;
+        }
       }
       /*Serial.println("Red, Green, Blue"); //If ya wanna see the colors of the Neo Pixels
       Serial.print(LEDr);
