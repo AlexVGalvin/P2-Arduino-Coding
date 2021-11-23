@@ -42,10 +42,11 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 
 float temperatureC = 0;
+#define tempRange 7.5
 
 // setup() function -- runs once at startup --------------------------------
 
-int highTemp = 29;  //Temperature where lights will depict coral that is starting to die
+int highTemp = 26;  //Temperature where lights will depict coral that is starting to die
 
 void setup() {
   pinMode(UV_PIN, OUTPUT);
@@ -82,11 +83,10 @@ void loop() {
   //colorWipe(strip.Color(  0, 255,   0), 50); // Green
   //colorWipe(strip.Color(  0,   0, 255), 50); // Blue
   int repeats = 0;
-  if (temperature > highTemp+7.5)
+  if (temperature > highTemp+tempRange)
   {
     digitalWrite(MOTOR_PIN, HIGH);
     digitalWrite(UV_PIN, LOW);
-    int tempRange = 7.5;
     float degreeGradient = 255/tempRange;
 
     /*float blue = (temperature-highTemp)*degreeGradient;
@@ -239,11 +239,14 @@ void rainbow(int wait) {
         uint8_t LEDr =(strip.getPixelColor(i) >> 16);
         uint8_t LEDg =(strip.getPixelColor(i) >> 8);
         uint8_t LEDb =(strip.getPixelColor(i));
-        float color = int(exp(0.73*(temperature-highTemp))-1);
+        uint8_t color = uint8_t(exp(0.73*(temperature-highTemp))-1);
         uint8_t red = LEDr + color;
+        uint8_t green = LEDg + color;
+        uint8_t blue = LEDb + color;
         //red = clamp(red, 0, 255);
-        Serial.println(red);
-        strip.setPixelColor(i, strip.Color(red, LEDg, LEDb));
+        Serial.println(color);
+        Serial.println(temperature);
+        strip.setPixelColor(i, strip.Color(red, green, blue));
       }
       /*Serial.println("Red, Green, Blue"); //If ya wanna see the colors of the Neo Pixels
       Serial.print(LEDr);
