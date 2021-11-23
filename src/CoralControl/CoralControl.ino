@@ -11,6 +11,7 @@
 // (Skipping these may work OK on your workbench but can fail in the field)
 
 #include <Adafruit_NeoPixel.h>
+#include <OneWire.h>
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -18,13 +19,13 @@
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1:
 #define LED_PIN 6
-#define MOTOR_PIN 13
+
 #define UV_PIN 10
 
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 10
 
-#include <OneWire.h>
+
 
 int DS18S20_Pin = 2; //DS18S20 Signal pin on digital 2
 
@@ -42,15 +43,13 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 
 float temperatureC = 0;
-#define tempRange 7.5
 
 // setup() function -- runs once at startup --------------------------------
 
-int highTemp = 26;  //Temperature where lights will depict coral that is starting to die
+int highTemp = 27;  //Temperature where lights will depict coral that is starting to die
 
 void setup() {
   pinMode(UV_PIN, OUTPUT);
-  pinMode(MOTOR_PIN, OUTPUT);
   // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
   // Any other board, you can remove this part (but no harm leaving it):
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
@@ -63,12 +62,10 @@ void setup() {
   strip.setBrightness(100); // Set BRIGHTNESS to about 1/5 (max = 255)
 }
 
-
 // loop() function -- runs repeatedly as long as board is on ---------------
-  float temperature = 0;
-  
+
 void loop() {
-  temperature = getTemp();
+  float temperature = getTemp();
   //Print out the temperature
   Serial.print(temperature);
   Serial.println(" deg C");
@@ -83,10 +80,10 @@ void loop() {
   //colorWipe(strip.Color(  0, 255,   0), 50); // Green
   //colorWipe(strip.Color(  0,   0, 255), 50); // Blue
   int repeats = 0;
-  if (temperature > highTemp+tempRange)
+  if (temperature > highTemp)
   {
-    digitalWrite(MOTOR_PIN, HIGH);
     digitalWrite(UV_PIN, LOW);
+    int tempRange = 7.5;
     float degreeGradient = 255/tempRange;
 
     /*float blue = (temperature-highTemp)*degreeGradient;
@@ -100,9 +97,8 @@ void loop() {
   }
   else
   {
-    digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    rainbow(10);             // Flowing rainbow cycle along the whole strip
+    rainbow(5);             // Flowing rainbow cycle along the whole strip
   }
   // Do a theater marquee effect in various colors...
   
@@ -212,10 +208,6 @@ void theaterChase(uint32_t color, int wait) {
   }
 }
 
-unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
-unsigned long PreviousTime = CurrentTime;
-bool badTemp = false;
-
 // Rainbow cycle along whole strip. Pass delay time (in ms) between frames.
 void rainbow(int wait) {
   // Hue of first pixel runs 5 complete loops through the color wheel.
@@ -233,46 +225,15 @@ void rainbow(int wait) {
       // Here we're using just the single-argument hue variant. The result
       // is passed through strip.gamma32() to provide 'truer' colors
       // before assigning to each pixel:
-      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue))); 
-      if (badTemp == true)
-      {
-        uint8_t LEDr =(strip.getPixelColor(i) >> 16);
-        uint8_t LEDg =(strip.getPixelColor(i) >> 8);
-        uint8_t LEDb =(strip.getPixelColor(i));
-        uint8_t color = uint8_t(exp(0.73*(temperature-highTemp))-1);
-        uint8_t red = LEDr + color;
-        uint8_t green = LEDg + color;
-        uint8_t blue = LEDb + color;
-        //red = clamp(red, 0, 255);
-        Serial.println(color);
-        Serial.println(temperature);
-        strip.setPixelColor(i, strip.Color(red, green, blue));
-      }
-      /*Serial.println("Red, Green, Blue"); //If ya wanna see the colors of the Neo Pixels
-      Serial.print(LEDr);
-      Serial.print(", ");
-      Serial.print(LEDg);
-      Serial.print(", ");
-      Serial.println(LEDb);
-      delay(300);*/
+      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
     }
 
-    CurrentTime = millis();
-    if (CurrentTime >= (PreviousTime + 2000))
+    float temp = getTemp();
+    Serial.print(temp);
+    Serial.println(" deg C");
+    if (temp >= highTemp)
     {
-      temperature = getTemp();
-      Serial.print(temperature);
-      Serial.println(" deg C");
-      if (temperature >= highTemp)
-      {
-        badTemp = true;
-      }
-      else
-      {
-        badTemp = false;
-      }
-      CurrentTime = millis();
-      PreviousTime = CurrentTime;
+      break;
     }
     
     strip.show(); // Update strip with new contents
