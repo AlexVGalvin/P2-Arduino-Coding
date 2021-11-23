@@ -11,6 +11,7 @@
 // (Skipping these may work OK on your workbench but can fail in the field)
 
 #include <Adafruit_NeoPixel.h>
+#include <OneWire.h>
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -24,7 +25,7 @@
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 10
 
-#include <OneWire.h>
+
 
 int DS18S20_Pin = 2; //DS18S20 Signal pin on digital 2
 
@@ -40,8 +41,6 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-
-float temperatureC = 0;
 
 // setup() function -- runs once at startup --------------------------------
 
@@ -64,9 +63,18 @@ void setup() {
 
 
 // loop() function -- runs repeatedly as long as board is on ---------------
-
+float ourTemperature = 27;
+float otherTemperature = 27;
+float temperature = 27;
 void loop() {
-  float temperature = getTemp();
+  ourTemperature = getTemp();
+  if(Serial.available())
+  {
+    otherTemperature = float(Serial.read());
+  }
+  // Aquarium temperature is 67% contolled by local temperature
+  temperature = (2*ourTemperature + 1*otherTemperature) / 3;
+  
   //Print out the temperature
   Serial.print(temperature);
   Serial.println(" deg C");
@@ -176,7 +184,7 @@ float getTemp(){
 // first; anything there will be covered pixel by pixel. Pass in color
 // (as a single 'packed' 32-bit value, which you can get by calling
 // strip.Color(red, green, blue) as shown in the loop() function above),
-// and a delay time (in milliseconds) between pixels.
+// and a delC:\Users\Alex\Documents\GitHub\P2-Arduino-Codingay time (in milliseconds) between pixels.
 void colorWipe(uint32_t color, int wait) {
   for(int i=0; i<strip.numPixels(); i++) { // For each pixel in strip...
     strip.setPixelColor(i, color);         //  Set pixel's color (in RAM)
