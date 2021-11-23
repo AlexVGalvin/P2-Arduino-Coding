@@ -11,6 +11,7 @@
 // (Skipping these may work OK on your workbench but can fail in the field)
 
 #include <Adafruit_NeoPixel.h>
+#include <OneWire.h>
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -24,7 +25,7 @@
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 10
 
-#include <OneWire.h>
+
 
 int DS18S20_Pin = 2; //DS18S20 Signal pin on digital 2
 
@@ -60,7 +61,6 @@ void setup() {
   strip.show();            // Turn OFF all pixels ASAP
   strip.setBrightness(100); // Set BRIGHTNESS to about 1/5 (max = 255)
 }
-
 
 // loop() function -- runs repeatedly as long as board is on ---------------
 
