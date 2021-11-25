@@ -12,6 +12,7 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <OneWire.h>
+#include <math.h>
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -23,7 +24,7 @@
 #define UV_PIN 10
 
 // How many NeoPixels are attached to the Arduino?
-#define LED_COUNT 10
+#define LED_COUNT 9
 
 
 
@@ -46,7 +47,13 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 // setup() function -- runs once at startup --------------------------------
 
 int highTemp = 27;  //Temperature where lights will depict coral that is starting to die
-#define tempRange 7.5
+#define tempRange 5
+
+float exponent = log(255)/tempRange;
+
+  int red[3] = {255, 0, 0};
+  int green[3] = {0, 255, 0};
+  int blue[3] = {0, 0, 255};
 
 void setup() {
   pinMode(UV_PIN, OUTPUT);
@@ -60,22 +67,26 @@ void setup() {
   Serial.begin(9600);
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(100); // Set BRIGHTNESS to about 1/5 (max = 255)
+  strip.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
 }
 
 
 // loop() function -- runs repeatedly as long as board is on ---------------
 float ourTemperature = 27;
-float otherTemperature = 27;
+float otherTemperature = 0; //This is set to zero to work with the if statement below
 float temperature = 27;
 void loop() {
   ourTemperature = getTemp();
   if(Serial.available())
   {
     otherTemperature = float(Serial.read());
+    Serial.println(otherTemperature);
   }
   // Aquarium temperature is 67% contolled by local temperature
-  temperature = (2*ourTemperature + 1*otherTemperature) / 3;
+  if (otherTemperature != 0) //If we don't give it a temperature, then it is 100% our measured temperature
+    temperature = (2*ourTemperature + 1*otherTemperature) / 3;
+  else
+    temperature = getTemp();
   
   //Print out the temperature
   Serial.print(temperature);
@@ -109,7 +120,8 @@ void loop() {
   {
     digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    rainbow(5);             // Flowing rainbow cycle along the whole strip
+    customRainbow(20);             // Flowing rainbow cycle along the whole strip
+    //rainbow(5);
   }
   // Do a theater marquee effect in various colors...
   
@@ -128,6 +140,89 @@ int clamp(int x, int maximum, int minimum)
   else if (x < minimum)
     x = minimum;
   return x;
+}
+
+unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
+unsigned long PreviousTime = CurrentTime;
+
+void customRainbow(int wait)
+{
+  for (int j = 0; j <= 255; j++)
+  {
+  for (int i = 0; i < 3; i++)
+  {
+    if (blue[i]==255)
+    {
+      if (green[i]!=0)
+        green[i]-=10;
+      else
+        red[i]+=10;
+    }
+    else if (green[i]==255)
+    {
+      if (red[i]!=0)
+        red[i]-=10;
+      else
+        blue[i]+=10;
+    }
+    else if (red[i]==255)
+    {
+      if (blue[i]!=0)
+        blue[i]-=10;
+      else
+      green[i]+=10;
+    }
+    red[i] = clamp(red[i], 255, 0);
+    green[i] = clamp(green[i], 255, 0);
+    blue[i] = clamp(blue[i], 255, 0);
+
+    if ((blue[i]==255) && (red[i]==255))
+    {
+      blue[i]-=20;
+    }
+
+    CurrentTime = millis();
+    if (CurrentTime >= (PreviousTime + 2000))
+    {
+      temperature = getTemp();
+      Serial.print(temperature);
+      Serial.println(" deg C");
+      CurrentTime = millis();
+      PreviousTime = CurrentTime;
+    }
+
+    int colorChange = 0;
+    if (temperature > highTemp)
+    {
+      colorChange = exp(exponent*(temperature-highTemp))-1;
+    }
+
+    int changedRed = red[i]+colorChange;
+    int changedGreen = green[i]+colorChange;
+    int changedBlue = blue[i]+colorChange;
+
+    changedRed = clamp(changedRed, 255, 0);
+    changedGreen = clamp(changedGreen, 255, 0);
+    changedBlue = clamp(changedBlue, 255, 0);
+    
+    /* This was meant for troubleshooting
+    if (i == 2){
+    Serial.print("Red: ");
+    Serial.println(red[i]);
+    Serial.print("Green: ");
+    Serial.println(green[i]);
+    Serial.print("Blue: ");
+    Serial.println(blue[i]);
+    delay(500);
+    }
+    */
+    strip.setPixelColor(i, changedRed, changedGreen, changedBlue);
+    strip.setPixelColor(i+3, changedRed, changedGreen, changedBlue);
+    strip.setPixelColor(i+6, changedRed, changedGreen, changedBlue);
+  }
+  strip.show();
+  delay(wait);
+  }
 }
 
 float getTemp(){
@@ -219,8 +314,6 @@ void theaterChase(uint32_t color, int wait) {
   }
 }
 
-unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
-unsigned long PreviousTime = CurrentTime;
 bool badTemp = false;
 
 // Rainbow cycle along whole strip. Pass delay time (in ms) between frames.
@@ -241,24 +334,6 @@ void rainbow(int wait) {
       // is passed through strip.gamma32() to provide 'truer' colors
       // before assigning to each pixel:
       strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue))); 
-      if (badTemp == true)
-      {
-        uint8_t LEDr =(strip.getPixelColor(i) >> 16);
-        uint8_t LEDg =(strip.getPixelColor(i) >> 8);
-        uint8_t LEDb =(strip.getPixelColor(i));
-        uint8_t color = uint8_t(exp(0.73*(temperature-highTemp))-1);
-        uint8_t red = LEDr + color;
-        uint8_t green = LEDg + color;
-        uint8_t blue = LEDb + color;
-        //red = clamp(red, 0, 255);
-        Serial.println(color);
-        Serial.println(temperature);
-        strip.setPixelColor(i, strip.Color(red, green, blue));
-        if (temperature > highTemp+tempRange)
-        {
-          break;
-        }
-      }
       /*Serial.println("Red, Green, Blue"); //If ya wanna see the colors of the Neo Pixels
       Serial.print(LEDr);
       Serial.print(", ");
@@ -274,14 +349,6 @@ void rainbow(int wait) {
       temperature = getTemp();
       Serial.print(temperature);
       Serial.println(" deg C");
-      if (temperature >= highTemp)
-      {
-        badTemp = true;
-      }
-      else
-      {
-        badTemp = false;
-      }
       CurrentTime = millis();
       PreviousTime = CurrentTime;
     }
