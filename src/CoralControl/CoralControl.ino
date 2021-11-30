@@ -96,42 +96,21 @@ void loop() {
   // Wait 100ms before reading voltage again
   delay(100);
   //Temperature Control Ends
-  
-  // Fill along the length of the strip in various colors...
-  
-  //colorWipe(strip.Color(255,   0,   0), 50); // Red
-  //colorWipe(strip.Color(  0, 255,   0), 50); // Green
-  //colorWipe(strip.Color(  0,   0, 255), 50); // Blue
+
   int repeats = 0;
   if (temperature > highTemp+tempRange)
   {
-    digitalWrite(MOTOR_PIN, HIGH);
+    digitalWrite(MOTOR_PIN, HIGH); //A 
     digitalWrite(UV_PIN, LOW);
     float degreeGradient = 255/tempRange;
-
-    /*float blue = (temperature-highTemp)*degreeGradient;
-    float green = (temperature-highTemp)*degreeGradient;
-    blue = clamp(blue, 255, 0);
-    green = clamp(green, 255, 0);*/
-    //Serial.print("Color: ");
-    //Serial.println(color);
     setColor(strip.Color(255, 255, 255), 100);
   }
   else
   {
     digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    customRainbow(20);             // Flowing rainbow cycle along the whole strip
-    //rainbow(5);
+    customRainbow(20);           // Flowing rainbow cycle along the whole strip
   }
-  // Do a theater marquee effect in various colors...
-  
-  //theaterChase(strip.Color(127, 127, 127), 50); // White, half brightness
-  //theaterChase(strip.Color(127,   0,   0), 50); // Red, half brightness
-  //theaterChase(strip.Color(  0,   0, 127), 50); // Blue, half brightness
-
-  
-  //theaterChaseRainbow(50); // Rainbow-enhanced theaterChase variant
 }
 
 int clamp(int x, int maximum, int minimum)
@@ -210,18 +189,8 @@ void customRainbow(int wait)
     changedGreen = clamp(changedGreen, 255, 0);
     changedBlue = clamp(changedBlue, 255, 0);
     
-    /* This was meant for troubleshooting
-    if (i == 2){
-    Serial.print("Red: ");
-    Serial.println(red[i]);
-    Serial.print("Green: ");
-    Serial.println(green[i]);
-    Serial.print("Blue: ");
-    Serial.println(blue[i]);
-    delay(500);
-    }
-    */
-    if (i == 0) //Seting to right colors to the right corals so that they are the same
+   
+    if (i == 0) //Setting a color to each coral
     {
       strip.setPixelColor(i, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+3, changedRed, changedGreen, changedBlue); 
