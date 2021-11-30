@@ -197,12 +197,12 @@ void customRainbow(int wait)
       strip.setPixelColor(i+5, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+6, changedRed, changedGreen, changedBlue); 
     }
-    if (i == 1)
+    else if (i == 1)
     {
       strip.setPixelColor(i, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+1, changedRed, changedGreen, changedBlue); 
     }
-    if (i == 2)
+    else if (i == 2)
     {
       strip.setPixelColor(i+2, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+5, changedRed, changedGreen, changedBlue); 
