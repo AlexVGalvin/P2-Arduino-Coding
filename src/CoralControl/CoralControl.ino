@@ -67,7 +67,7 @@ void setup() {
   Serial.begin(9600);
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
+  strip.setBrightness(50); // Set BRIGHTNESS (max = 255)
 }
 
 
@@ -83,6 +83,7 @@ void loop() {
     Serial.println(otherTemperature);
   }
   // Aquarium temperature is 67% contolled by local temperature
+  //Serial.println(otherTemperature); //Just for testing
   if (otherTemperature != 0) //If we don't give it a temperature, then it is 100% our measured temperature
     temperature = (2*ourTemperature + 1*otherTemperature) / 3;
   else
@@ -184,11 +185,15 @@ void customRainbow(int wait)
     CurrentTime = millis();
     if (CurrentTime >= (PreviousTime + 2000))
     {
-      temperature = getTemp();
+      ourTemperature = getTemp();
       Serial.print(temperature);
       Serial.println(" deg C");
       CurrentTime = millis();
       PreviousTime = CurrentTime;
+      if (otherTemperature != 0) //If we don't give it a temperature, then it is 100% our measured temperature
+        temperature = (2*ourTemperature + 1*otherTemperature) / 3;
+      else
+        temperature = ourTemperature;
     }
 
     int colorChange = 0;
