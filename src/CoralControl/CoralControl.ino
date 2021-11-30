@@ -19,9 +19,9 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1:
-#define LED_PIN 3
-#define MOTOR_PIN 1
-#define UV_PIN 4
+#define LED_PIN 13
+#define MOTOR_PIN 7
+#define UV_PIN 8
 
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 8
@@ -67,7 +67,7 @@ void setup() {
   Serial.begin(9600);
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(50); // Set BRIGHTNESS (max = 255)
+  strip.setBrightness(100); // Set BRIGHTNESS (max = 255)
 }
 
 
@@ -225,6 +225,8 @@ void customRainbow(int wait)
     {
       strip.setPixelColor(i, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+3, changedRed, changedGreen, changedBlue); 
+      strip.setPixelColor(i+5, changedRed, changedGreen, changedBlue);
+      strip.setPixelColor(i+6, changedRed, changedGreen, changedBlue); 
     }
     if (i == 1)
     {
