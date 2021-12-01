@@ -125,6 +125,48 @@ int clamp(int x, int maximum, int minimum)
 unsigned long CurrentTime = millis();     //Makes it only check the temperature every 2 seconds.
 unsigned long PreviousTime = CurrentTime;
 
+// Assigns a color tetrad (i.e. two pairs of complimentary colors) 
+// to the first four NeoPixels in the strip
+void updateColors(uint16_t hue) {
+  uint32_t color;
+
+  // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
+  updateTemperature();
+
+    
+  for (uint16_t i = 0; i++; i < 4){
+    // Move one quarter of the color wheel per pixel
+    // Hue solely depends on a pixel's position
+    hue = (hue + 16384) % 65535;
+    color = strip.ColorHSV(hue, );
+    strip.setPixelColor(i, color);
+
+    // in HSV, S == saturation, 0 < S < 255
+    // saturation dermines a *hue's* intensity. 
+    // i.e. if s=255, the hue is intense. if S=10, the color is off-white "tinged" with the hue
+    // V == value, 0 < V < 255
+    // value determines the *overall* intensity. 
+    // if V=0, the color is black. if V=255, the color is very bright.
+
+    
+  }
+}
+
+void updateTemperature() {
+  ourTemperature = getTemp();
+  CurrentTime = millis();
+  PreviousTime = CurrentTime;
+  if (otherTemperature != 0) {
+    temperature = (2*ourTemperature + 1*otherTemperature) / 3;
+  } else {
+    //If we don't give it a temperature, then it is 100% our measured temperature
+    temperature = ourTemperature;
+  }
+  Serial.print(temperature);
+  Serial.println(" deg C");
+}
+
+
 void customRainbow(int wait)
 {
   for (int j = 0; j <= 255; j++)
