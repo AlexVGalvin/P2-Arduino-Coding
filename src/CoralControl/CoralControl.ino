@@ -51,9 +51,9 @@ int highTemp = 27;  //Temperature where lights will depict coral that is startin
 
 float exponent = log(255)/tempRange;
 
-  int red[3] = {255, 0, 0};
-  int green[3] = {0, 255, 0};
-  int blue[3] = {0, 0, 255};
+  int red[4] = {255, 127, 0, 127};
+  int green[4] = {0, 0, 255, 255};
+  int blue[4] = {0, 255, 255, 0};
 
 void setup() {
   pinMode(UV_PIN, OUTPUT);
@@ -171,7 +171,7 @@ void customRainbow(int wait)
 {
   for (int j = 0; j <= 255; j++)
   {
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 4; i++)
   {
     if (blue[i]==255)
     {
@@ -236,8 +236,7 @@ void customRainbow(int wait)
     {
       strip.setPixelColor(i, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+3, changedRed, changedGreen, changedBlue); 
-      strip.setPixelColor(i+5, changedRed, changedGreen, changedBlue);
-      strip.setPixelColor(i+6, changedRed, changedGreen, changedBlue); 
+
     }
     else if (i == 1)
     {
@@ -248,6 +247,11 @@ void customRainbow(int wait)
     {
       strip.setPixelColor(i+2, changedRed, changedGreen, changedBlue);
       strip.setPixelColor(i+5, changedRed, changedGreen, changedBlue); 
+    }
+    else if (i == 3)
+    {
+      strip.setPixelColor(i+2, changedRed, changedGreen, changedBlue);
+      strip.setPixelColor(i+3, changedRed, changedGreen, changedBlue); 
     }
   }
   strip.show();
