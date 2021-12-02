@@ -133,8 +133,10 @@ void updateColors(uint16_t hue) {
   uint8_t value;
 
   // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
-  updateTemperature();
-
+    if (CurrentTime >= (PreviousTime + 2000))
+    {
+      updateTemperature();
+    }
     
   for (uint16_t i = 0; i++; i < 4){
     // Move one quarter of the color wheel per pixel
