@@ -129,6 +129,7 @@ unsigned long PreviousTime = CurrentTime;
 // to the first four NeoPixels in the strip
 void updateColors(uint16_t hue) {
   uint32_t color;
+  
 
   // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
   updateTemperature();
@@ -137,8 +138,10 @@ void updateColors(uint16_t hue) {
   for (uint16_t i = 0; i++; i < 4){
     // Move one quarter of the color wheel per pixel
     // Hue solely depends on a pixel's position
-    hue = (hue + 16384) % 65535;
-    color = strip.ColorHSV(hue, );
+    // Since hue is a uint, it will wrap around when it goes over 6
+    hue = hue + 16384;
+    color = strip.ColorHSV(hue);
+    strip.setPixelColor(i, color);
     strip.setPixelColor(i, color);
 
     // in HSV, S == saturation, 0 < S < 255
@@ -148,8 +151,31 @@ void updateColors(uint16_t hue) {
     // value determines the *overall* intensity. 
     // if V=0, the color is black. if V=255, the color is very bright.
 
+    if (i == 0) //Setting a color to each coral
+    {
+      strip.setPixelColor(i, color);
+      strip.setPixelColor(i+3, color); 
+
+    }
+    else if (i == 1)
+    {
+      strip.setPixelColor(i, color);
+      strip.setPixelColor(i+1, color); 
+    }
+    else if (i == 2)
+    {
+      strip.setPixelColor(i+2, color);
+      strip.setPixelColor(i+5, color); 
+    }
+    else if (i == 3)
+    {
+      strip.setPixelColor(i+2, color);
+      strip.setPixelColor(i+3, color); 
+    }
+
     
   }
+  strip.show();
 }
 
 void updateTemperature() {
