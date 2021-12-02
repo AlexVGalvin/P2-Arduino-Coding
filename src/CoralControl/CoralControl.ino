@@ -129,7 +129,8 @@ unsigned long PreviousTime = CurrentTime;
 // to the first four NeoPixels in the strip
 void updateColors(uint16_t hue) {
   uint32_t color;
-  
+  uint8_t saturation;
+  uint8_t value;
 
   // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
   updateTemperature();
@@ -138,11 +139,19 @@ void updateColors(uint16_t hue) {
   for (uint16_t i = 0; i++; i < 4){
     // Move one quarter of the color wheel per pixel
     // Hue solely depends on a pixel's position
-    // Since hue is a uint, it will wrap around when it goes over 6
+    // Since hue is a uint, it will wrap around when it goes over 65535
     hue = hue + 16384;
+
+    // i.e. if the temperature is above 30 C
+    if ( (255/3)*(temperature - highTemp) > 255) {
+      saturation = 255;
+    } else if (temperature > highTemp) {
+      saturation = (255/3)*(temperature - highTemp);
+    } else {
+      saturation = 0;
+    }
+    
     color = strip.ColorHSV(hue);
-    strip.setPixelColor(i, color);
-    strip.setPixelColor(i, color);
 
     // in HSV, S == saturation, 0 < S < 255
     // saturation dermines a *hue's* intensity. 
