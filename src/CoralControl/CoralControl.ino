@@ -26,7 +26,7 @@
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 8
 
-
+#define brightness 10
 
 int DS18S20_Pin = 2; //DS18S20 Signal pin on digital 2
 
@@ -67,7 +67,7 @@ void setup() {
   Serial.begin(9600);
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(100); // Set BRIGHTNESS (max = 255)
+  strip.setBrightness(brightness); // Set BRIGHTNESS (max = 255)
 }
 
 
@@ -103,13 +103,14 @@ void loop() {
     digitalWrite(MOTOR_PIN, HIGH); //A 
     digitalWrite(UV_PIN, LOW);
     float degreeGradient = 255/tempRange;
-    setColor(strip.Color(255, 255, 255), 100);
+    updateColors(0);
   }
   else
   {
     digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    customRainbow(20);           // Flowing rainbow cycle along the whole strip
+    //customRainbow(20);           // Flowing rainbow cycle along the whole strip
+    updateColors(15);
   }
 }
 
@@ -127,66 +128,73 @@ unsigned long PreviousTime = CurrentTime;
 
 // Assigns a color tetrad (i.e. two pairs of complimentary colors) 
 // to the first four NeoPixels in the strip
-void updateColors(uint16_t hue) {
-  uint32_t color;
-  uint8_t saturation;
-  uint8_t value;
+void updateColors(int wait) {
+  uint32_t color = 0;
+  uint8_t saturation = 0;
+  uint8_t value = 255;
+  uint16_t hue = 0;
 
-  // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
-    if (CurrentTime >= (PreviousTime + 2000))
+
+  for (int t = 0; t<255; t++) {
+    // Temperature is 2/3rds influenced locally, 1/3 by the other tank (assuming other temperature is given)
+    CurrentTime = millis();
+    if (CurrentTime >= (PreviousTime + 250))
     {
       updateTemperature();
     }
     
-  for (uint16_t i = 0; i++; i < 4){
-    // Move one quarter of the color wheel per pixel
-    // Hue solely depends on a pixel's position
-    // Since hue is a uint, it will wrap around when it goes over 65535
-    hue = hue + 16384;
-
     // i.e. if the temperature is above 30 C
-    if ( (255/3)*(temperature - highTemp) > 255) {
-      saturation = 255;
-    } else if (temperature > highTemp) {
-      saturation = (255/3)*(temperature - highTemp);
-    } else {
+    if (temperature > highTemp + tempRange) {
       saturation = 0;
+    } else if (temperature > highTemp) {
+      //saturation = 255 - exp(exponent*(temperature-highTemp))-1;
+      saturation = (255/tempRange) * ((highTemp + tempRange) - temperature);
+    } else {
+      saturation = 255;
     }
     
-    color = strip.ColorHSV(hue);
-
-    // in HSV, S == saturation, 0 < S < 255
-    // saturation dermines a *hue's* intensity. 
-    // i.e. if s=255, the hue is intense. if S=10, the color is off-white "tinged" with the hue
-    // V == value, 0 < V < 255
-    // value determines the *overall* intensity. 
-    // if V=0, the color is black. if V=255, the color is very bright.
-
-    if (i == 0) //Setting a color to each coral
-    {
-      strip.setPixelColor(i, color);
-      strip.setPixelColor(i+3, color); 
-
-    }
-    else if (i == 1)
-    {
-      strip.setPixelColor(i, color);
-      strip.setPixelColor(i+1, color); 
-    }
-    else if (i == 2)
-    {
-      strip.setPixelColor(i+2, color);
-      strip.setPixelColor(i+5, color); 
-    }
-    else if (i == 3)
-    {
-      strip.setPixelColor(i+2, color);
-      strip.setPixelColor(i+3, color); 
-    }
-
+    for (int i = 0; i < 4; i++){
+     // Move one quarter of the color wheel per pixel
+     // Hue solely depends on a pixel's position
+     // Since hue is a uint, it will wrap around when it goes over 65535
+     hue = hue + 16384;
     
+      color = strip.ColorHSV(hue, saturation, saturation);
+
+      // in HSV, S == saturation, 0 < S < 255
+      // saturation dermines a *hue's* intensity. 
+      // i.e. if s=255, the hue is intense. if S=10, the color is off-white "tinged" with the hue
+      // V == value, 0 < V < 255
+      // value determines the *overall* intensity. 
+      // if V=0, the color is black. if V=255, the color is very bright.
+
+      if (i == 0) //Setting a color to each coral
+      {
+        strip.setPixelColor(i, color);  
+        strip.setPixelColor(i+3, color); 
+
+      }
+      else if (i == 1)
+      {
+        strip.setPixelColor(i, color);
+        strip.setPixelColor(i+1, color); 
+      }
+      else if (i == 2)
+      {
+        strip.setPixelColor(i+2, color);
+        strip.setPixelColor(i+5, color); 
+      }
+      else if (i == 3)
+      {
+        strip.setPixelColor(i+2, color);
+        strip.setPixelColor(i+3, color); 
+      }
+
   }
   strip.show();
+  hue += 256;
+  delay(wait);
+  }
 }
 
 void updateTemperature() {
