@@ -82,12 +82,10 @@ void loop() {
     otherTemperature = float(Serial.read());
     Serial.println(otherTemperature);
   }
-  // Aquarium temperature is 67% contolled by local temperature
-  //Serial.println(otherTemperature); //Just for testing
-  if (otherTemperature != 0) //If we don't give it a temperature, then it is 100% our measured temperature
+  if (otherTemperature != 0) // // Aquarium temperature is 67% contolled by local temperature If we don't give it a temperature, then it is 100% our measured temperature
     temperature = (2*ourTemperature + 1*otherTemperature) / 3;
   else
-    temperature = getTemp();
+    temperature = getTemp(); //Gets the temperature from the waterproof temperature sensor
   
   //Print out the temperature
   Serial.print(temperature);
@@ -97,19 +95,18 @@ void loop() {
   delay(100);
   //Temperature Control Ends
 
-  int repeats = 0;
-  if (temperature > highTemp+tempRange)
+  if (temperature > highTemp+tempRange) //When the temperature gets too high, the motor turns off and the UV LEDs turn off
   {
-    digitalWrite(MOTOR_PIN, HIGH); //A 
-    digitalWrite(UV_PIN, LOW);
-    float degreeGradient = 255/tempRange;
-    updateColors(0);
+    digitalWrite(MOTOR_PIN, HIGH);  //The motor pin is set to high since the motor is connected to a transistor which allows the motor to be controlled
+                                    //by the Arduino, while being powered by the external power supply. Setting it to high stops current in the transistor
+    digitalWrite(UV_PIN, LOW);      
+    updateColors(0);                //Updates the colors on the Neo Pixels. The 0 is a delay between updates which controls the speed of the color changes,
+                                    //Which can be 0 since the lights are just turned off when the temperature is too high.
   }
-  else
+  else                              //If the temperature is low enough, the Motor runs, UV LEDs turn on, and the corals get a rainbow effect.
   {
     digitalWrite(MOTOR_PIN, LOW);
     digitalWrite(UV_PIN, HIGH);
-    //customRainbow(20);           // Flowing rainbow cycle along the whole strip
     updateColors(15);
   }
 }
@@ -143,11 +140,9 @@ void updateColors(int wait) {
       updateTemperature();
     }
     
-    // i.e. if the temperature is above 30 C
     if (temperature > highTemp + tempRange) {
       saturation = 0;
     } else if (temperature > highTemp) {
-      //saturation = 255 - exp(exponent*(temperature-highTemp))-1;
       saturation = (255/tempRange) * ((highTemp + tempRange) - temperature);
     } else {
       saturation = 255;
