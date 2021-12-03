@@ -79,8 +79,11 @@ void loop() {
   ourTemperature = getTemp();
   if(Serial.available())
   {
-    otherTemperature = float(Serial.read());
+    otherTemperature = Serial.parseFloat();
     Serial.println(otherTemperature);
+    while(Serial.available()) {
+      Serial.read();
+    } 
   }
   if (otherTemperature != 0) // // Aquarium temperature is 67% contolled by local temperature If we don't give it a temperature, then it is 100% our measured temperature
     temperature = (2*ourTemperature + 1*otherTemperature) / 3;
