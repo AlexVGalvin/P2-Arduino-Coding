@@ -77,7 +77,7 @@ float otherTemperature = 0; //This is set to zero to work with the if statement 
 float temperature = 27;
 void loop() {
   ourTemperature = getTemp();
-  if(Serial.available())
+  if(Serial.available()) //Gets information about the other location's temperature from the serial monitor
   {
     otherTemperature = Serial.parseFloat();
     Serial.println(otherTemperature);
@@ -85,7 +85,8 @@ void loop() {
       Serial.read();
     } 
   }
-  if (otherTemperature != 0) // // Aquarium temperature is 67% contolled by local temperature If we don't give it a temperature, then it is 100% our measured temperature
+  if (otherTemperature != 0) //Aquarium temperature is 67% contolled by local temperature If we don't give it a temperature, or if
+                             //the given temerature is 0 then it is 100% our measured temperature
     temperature = (2*ourTemperature + 1*otherTemperature) / 3;
   else
     temperature = getTemp(); //Gets the temperature from the waterproof temperature sensor
