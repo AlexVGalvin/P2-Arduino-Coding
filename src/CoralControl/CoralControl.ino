@@ -76,7 +76,7 @@ float ourTemperature = 27;
 float otherTemperature = 0; //This is set to zero to work with the if statement below
 float temperature = 27;
 void loop() {
-  ourTemperature = getTemp();
+  ourTemperature = getTemp(); //Reads the current temperature of the temerature sensor
   if(Serial.available()) //Gets information about the other location's temperature from the serial monitor
   {
     otherTemperature = Serial.parseFloat();
